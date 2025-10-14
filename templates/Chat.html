@@ -1,0 +1,343 @@
+{% extends "base.html" %}
+
+{% block title %}inchat - Chat{% endblock %}
+
+{% block content %}
+<div class="chat-container">
+    <!-- Sidebar -->
+    <div class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <button class="new-chat-btn" onclick="createNewChat()">
+                <span>+</span> Nuevo Chat
+            </button>
+        </div>
+
+        <div class="chat-list" id="chatList">
+            {% for session in chat_sessions %}
+            <div class="chat-item" onclick="loadChatSession('{{ session._id }}')">
+                <div class="chat-item-title">{{ session.titulo }}</div>
+                <div class="chat-item-time">{{ session.fecha_creacion.strftime('%d/%m %H:%M') }}</div>
+            </div>
+            {% endfor %}
+            
+            {% if not chat_sessions %}
+            <div class="chat-item">
+                <div class="chat-item-title">dfAGE</div>
+                <div class="chat-item-time">Hoy</div>
+            </div>
+            {% endif %}
+        </div>
+
+        <div class="sidebar-footer">
+            <button class="logout-btn" onclick="logout()">
+                🚪 Cerrar Sesión
+            </button>
+        </div>
+    </div>
+
+    <!-- Main Chat Area -->
+    <div class="main-chat">
+        <div class="chat-header">
+            <button class="menu-btn" onclick="toggleSidebar()" style="display: none;">☰</button>
+            <div>
+                <h1 class="chat-title" id="chatTitle">Ejemplo de preguntas</h1>
+                <p class="chat-subtitle" id="chatSubtitle">inchat Assistant</p>
+            </div>
+        </div>
+
+        <div class="messages-container" id="messagesContainer">
+            <!-- Mensaje inicial del asistente -->
+            <div class="message assistant">
+                <div class="message-avatar">🤖</div>
+                <div class="message-content">
+                    <div>¡Hola! Soy tu asistente virtual de inchat. ¿En qué puedo ayudarte hoy?</div>
+                    <div class="message-time">18:04</div>
+                </div>
+            </div>
+            
+            <div class="message assistant">
+                <div class="message-avatar">🤖</div>
+                <div class="message-content">
+                    <div>Entiendo tu consulta. Permíteme ayudarte con eso.</div>
+                    <div class="message-time">18:04</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="chat-input-container">
+            <form class="chat-input-form" id="chatForm">
+                <textarea 
+                    class="chat-input" 
+                    id="messageInput" 
+                    placeholder="Escribe un mensaje..." 
+                    rows="1"
+                ></textarea>
+                <button type="submit" class="send-btn" id="sendBtn">
+                    <span id="sendIcon">➤</span>
+                    <div class="loading" id="sendLoading" style="display: none;"></div>
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Datos del usuario para JavaScript -->
+<script>
+    const userData = {
+        name: "{{ user_name }}",
+        userId: "{{ session.user_id }}"
+    };
+</script>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+let currentSessionId = null;
+let isLoading = false;
+
+// Auto-resize textarea
+document.getElementById('messageInput').addEventListener('input', function() {
+    this.style.height = 'auto';
+    this.style.height = Math.min(this.scrollHeight, 120) + 'px';
+});
+
+// Detectar Enter para enviar mensaje (Shift+Enter para nueva línea)
+document.getElementById('messageInput').addEventListener('keydown', function(e) {
+    if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        if (!isLoading && this.value.trim()) {
+            sendMessage();
+        }
+    }
+});
+
+// Manejar envío de formulario
+document.getElementById('chatForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    if (!isLoading) {
+        sendMessage();
+    }
+});
+
+async function createNewChat() {
+    try {
+        const response = await fetch('/new_chat', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            currentSessionId = data.session_id;
+            
+            // Limpiar chat actual
+            clearMessages();
+            document.getElementById('chatTitle').textContent = 'Nuevo Chat';
+            
+            // Agregar a la lista de chats
+            addChatToList('Nuevo Chat', 'Ahora');
+            
+            // Mostrar mensaje inicial
+            addMessage('assistant', '¡Hola! Soy tu asistente virtual de inchat. ¿En qué puedo ayudarte hoy?', getCurrentTime());
+        } else {
+            alert('Error al crear nuevo chat: ' + data.message);
+        }
+    } catch (error) {
+        alert('Error de conexión al crear nuevo chat');
+        console.error('Error:', error);
+    }
+}
+
+async function loadChatSession(sessionId) {
+    try {
+        currentSessionId = sessionId;
+        
+        // Marcar chat como activo
+        document.querySelectorAll('.chat-item').forEach(item => {
+            item.classList.remove('active');
+        });
+        event.target.closest('.chat-item').classList.add('active');
+        
+        // Cargar mensajes
+        const response = await fetch('/get_messages/' + sessionId);
+        const data = await response.json();
+        
+        if (data.success) {
+            clearMessages();
+            
+            data.messages.forEach(msg => {
+                addMessage(msg.tipo, msg.contenido, msg.timestamp);
+            });
+            
+            scrollToBottom();
+        }
+    } catch (error) {
+        console.error('Error al cargar chat:', error);
+    }
+}
+
+async function sendMessage() {
+    const messageInput = document.getElementById('messageInput');
+    const message = messageInput.value.trim();
+    
+    if (!message || isLoading) return;
+    
+    // Si no hay sesión activa, crear una nueva
+    if (!currentSessionId) {
+        await createNewChat();
+    }
+    
+    // Agregar mensaje del usuario
+    addMessage('user', message, getCurrentTime());
+    messageInput.value = '';
+    messageInput.style.height = 'auto';
+    
+    // Mostrar estado de carga
+    setLoading(true);
+    scrollToBottom();
+    
+    try {
+        const response = await fetch('/send_message', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                message: message,
+                session_id: currentSessionId
+            })
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            // Agregar respuesta del asistente
+            addMessage('assistant', data.response, data.timestamp);
+        } else {
+            addMessage('assistant', 'Lo siento, hubo un error al procesar tu mensaje: ' + data.message, getCurrentTime());
+        }
+    } catch (error) {
+        addMessage('assistant', 'Lo siento, hubo un error de conexión. Por favor intenta nuevamente.', getCurrentTime());
+        console.error('Error:', error);
+    }
+    
+    setLoading(false);
+    scrollToBottom();
+}
+
+function addMessage(type, content, timestamp) {
+    const messagesContainer = document.getElementById('messagesContainer');
+    
+    const messageDiv = document.createElement('div');
+    messageDiv.className = `message ${type}`;
+    
+    const avatar = type === 'assistant' ? '🤖' : getUserInitials();
+    
+    messageDiv.innerHTML = `
+        <div class="message-avatar">${avatar}</div>
+        <div class="message-content">
+            <div>${escapeHtml(content)}</div>
+            <div class="message-time">${timestamp}</div>
+        </div>
+    `;
+    
+    messagesContainer.appendChild(messageDiv);
+}
+
+function clearMessages() {
+    const messagesContainer = document.getElementById('messagesContainer');
+    messagesContainer.innerHTML = '';
+}
+
+function setLoading(loading) {
+    isLoading = loading;
+    const sendBtn = document.getElementById('sendBtn');
+    const sendIcon = document.getElementById('sendIcon');
+    const sendLoading = document.getElementById('sendLoading');
+    
+    if (loading) {
+        sendBtn.disabled = true;
+        sendIcon.style.display = 'none';
+        sendLoading.style.display = 'block';
+    } else {
+        sendBtn.disabled = false;
+        sendIcon.style.display = 'block';
+        sendLoading.style.display = 'none';
+    }
+}
+
+function scrollToBottom() {
+    const messagesContainer = document.getElementById('messagesContainer');
+    messagesContainer.scrollTop = messagesContainer.scrollHeight;
+}
+
+function getCurrentTime() {
+    const now = new Date();
+    return now.getHours().toString().padStart(2, '0') + ':' + 
+           now.getMinutes().toString().padStart(2, '0');
+}
+
+function getUserInitials() {
+    if (userData.name) {
+        return userData.name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
+    }
+    return '👤';
+}
+
+function addChatToList(title, time) {
+    const chatList = document.getElementById('chatList');
+    
+    const chatItem = document.createElement('div');
+    chatItem.className = 'chat-item active';
+    chatItem.onclick = () => loadChatSession(currentSessionId);
+    
+    chatItem.innerHTML = `
+        <div class="chat-item-title">${title}</div>
+        <div class="chat-item-time">${time}</div>
+    `;
+    
+    // Remover clase active de otros items
+    document.querySelectorAll('.chat-item').forEach(item => {
+        item.classList.remove('active');
+    });
+    
+    // Agregar al principio de la lista
+    chatList.insertBefore(chatItem, chatList.firstChild);
+}
+
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
+function logout() {
+    if (confirm('¿Estás seguro de que quieres cerrar sesión?')) {
+        window.location.href = '/logout';
+    }
+}
+
+// Responsive: mostrar botón de menú en móvil
+function checkResponsive() {
+    const menuBtn = document.querySelector('.menu-btn');
+    if (window.innerWidth <= 768) {
+        menuBtn.style.display = 'block';
+    } else {
+        menuBtn.style.display = 'none';
+        document.getElementById('sidebar').classList.remove('open');
+    }
+}
+
+// Ejecutar al cargar y al redimensionar
+window.addEventListener('load', checkResponsive);
+window.addEventListener('resize', checkResponsive);
+
+// Auto-scroll al cargar
+window.addEventListener('load', () => {
+    setTimeout(scrollToBottom, 100);
+});
+</script>
+{% endblock %}

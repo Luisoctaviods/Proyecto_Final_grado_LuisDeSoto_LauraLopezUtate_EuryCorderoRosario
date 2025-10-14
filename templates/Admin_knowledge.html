@@ -1,0 +1,359 @@
+{% extends "base.html" %}
+
+{% block title %}inchat - Administrar Base de Conocimiento{% endblock %}
+
+{% block content %}
+<div class="admin-container">
+    <div class="admin-header">
+        <h1>Base de Conocimiento - inchat</h1>
+        <button class="btn" onclick="showAddDocumentModal()">+ Agregar Documento</button>
+    </div>
+
+    <div class="admin-content">
+        <div class="documents-list">
+            <h2>Documentos Existentes</h2>
+            <div class="documents-grid" id="documentsGrid">
+                {% for doc in docs %}
+                <div class="document-card" data-id="{{ doc._id }}">
+                    <div class="document-header">
+                        <h3>{{ doc.titulo }}</h3>
+                        <div class="document-actions">
+                            <button onclick="editDocument('{{ doc._id }}')" class="btn-edit">✏️</button>
+                            <button onclick="deleteDocument('{{ doc._id }}')" class="btn-delete">🗑️</button>
+                        </div>
+                    </div>
+                    <div class="document-content">
+                        <p><strong>Tipo:</strong> {{ doc.tipo }}</p>
+                        {% if doc.url %}
+                        <p><strong>URL:</strong> <a href="{{ doc.url }}" target="_blank">{{ doc.url }}</a></p>
+                        {% endif %}
+                        <p><strong>Contenido:</strong> {{ doc.contenido[:200] }}{% if doc.contenido|length > 200 %}...{% endif %}</p>
+                        <p><strong>Fecha:</strong> {{ doc.fecha_subida.strftime('%d/%m/%Y %H:%M') }}</p>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal para agregar/editar documento -->
+<div class="modal" id="documentModal" style="display: none;">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2 id="modalTitle">Agregar Documento</h2>
+            <button class="modal-close" onclick="closeModal()">&times;</button>
+        </div>
+        
+        <form id="documentForm">
+            <div class="form-group">
+                <label for="docTitle">Título del Documento</label>
+                <input type="text" id="docTitle" class="form-control" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="docType">Tipo</label>
+                <select id="docType" class="form-control" required>
+                    <option value="documento">Documento</option>
+                    <option value="enlace">Enlace</option>
+                </select>
+            </div>
+            
+            <div class="form-group" id="urlGroup" style="display: none;">
+                <label for="docUrl">URL</label>
+                <input type="url" id="docUrl" class="form-control" placeholder="https://ejemplo.com">
+            </div>
+            
+            <div class="form-group">
+                <label for="docContent">Contenido</label>
+                <textarea id="docContent" class="form-control" rows="10" required 
+                          placeholder="Contenido del documento o descripción del enlace..."></textarea>
+            </div>
+            
+            <div class="modal-actions">
+                <button type="button" onclick="closeModal()" class="btn btn-secondary">Cancelar</button>
+                <button type="submit" class="btn" id="saveBtn">Guardar</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<style>
+.admin-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+    min-height: 100vh;
+}
+
+.admin-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid #3a3a3a;
+}
+
+.admin-header h1 {
+    color: #ffffff;
+    margin: 0;
+}
+
+.admin-content {
+    background: #2a2a2a;
+    border-radius: 12px;
+    padding: 30px;
+}
+
+.documents-list h2 {
+    color: #ffffff;
+    margin-bottom: 20px;
+}
+
+.documents-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+    gap: 20px;
+}
+
+.document-card {
+    background: #3a3a3a;
+    border-radius: 8px;
+    padding: 20px;
+    border: 1px solid #4a4a4a;
+}
+
+.document-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 15px;
+}
+
+.document-header h3 {
+    color: #ffffff;
+    margin: 0;
+    flex: 1;
+    margin-right: 10px;
+}
+
+.document-actions {
+    display: flex;
+    gap: 5px;
+}
+
+.btn-edit, .btn-delete {
+    background: none;
+    border: none;
+    font-size: 1.2rem;
+    cursor: pointer;
+    padding: 5px;
+    border-radius: 4px;
+    transition: background 0.3s ease;
+}
+
+.btn-edit:hover {
+    background: #4a4a4a;
+}
+
+.btn-delete:hover {
+    background: #ff3333;
+}
+
+.document-content p {
+    color: #ccc;
+    margin-bottom: 8px;
+    font-size: 0.9rem;
+    line-height: 1.4;
+}
+
+.document-content a {
+    color: #ff3333;
+    text-decoration: none;
+}
+
+.modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.8);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    padding: 20px;
+}
+
+.modal-content {
+    background: #2a2a2a;
+    border-radius: 12px;
+    width: 100%;
+    max-width: 600px;
+    max-height: 90vh;
+    overflow-y: auto;
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px;
+    border-bottom: 1px solid #3a3a3a;
+}
+
+.modal-header h2 {
+    color: #ffffff;
+    margin: 0;
+}
+
+.modal-close {
+    background: none;
+    border: none;
+    color: #999;
+    font-size: 1.5rem;
+    cursor: pointer;
+    padding: 0;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.modal-close:hover {
+    color: #ffffff;
+}
+
+#documentForm {
+    padding: 20px;
+}
+
+.modal-actions {
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+    margin-top: 20px;
+}
+
+.btn-secondary {
+    background: #4a4a4a;
+    color: #ffffff;
+}
+
+.btn-secondary:hover {
+    background: #5a5a5a;
+}
+
+@media (max-width: 768px) {
+    .admin-header {
+        flex-direction: column;
+        gap: 15px;
+        align-items: stretch;
+    }
+    
+    .documents-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .modal-content {
+        margin: 10px;
+        max-height: calc(100vh - 20px);
+    }
+}
+</style>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+let editingDocId = null;
+
+function showAddDocumentModal() {
+    editingDocId = null;
+    document.getElementById('modalTitle').textContent = 'Agregar Documento';
+    document.getElementById('documentForm').reset();
+    document.getElementById('urlGroup').style.display = 'none';
+    document.getElementById('documentModal').style.display = 'flex';
+}
+
+function editDocument(docId) {
+    editingDocId = docId;
+    document.getElementById('modalTitle').textContent = 'Editar Documento';
+    
+    // Aquí cargarías los datos del documento para editar
+    // Por simplicidad, mostramos el modal vacío
+    document.getElementById('documentModal').style.display = 'flex';
+}
+
+function deleteDocument(docId) {
+    if (confirm('¿Estás seguro de que quieres eliminar este documento?')) {
+        // Implementar eliminación
+        console.log('Eliminar documento:', docId);
+    }
+}
+
+function closeModal() {
+    document.getElementById('documentModal').style.display = 'none';
+    editingDocId = null;
+}
+
+// Mostrar/ocultar campo URL según el tipo
+document.getElementById('docType').addEventListener('change', function() {
+    const urlGroup = document.getElementById('urlGroup');
+    const urlInput = document.getElementById('docUrl');
+    
+    if (this.value === 'enlace') {
+        urlGroup.style.display = 'block';
+        urlInput.required = true;
+    } else {
+        urlGroup.style.display = 'none';
+        urlInput.required = false;
+        urlInput.value = '';
+    }
+});
+
+// Manejar envío del formulario
+document.getElementById('documentForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    
+    const formData = {
+        titulo: document.getElementById('docTitle').value,
+        tipo: document.getElementById('docType').value,
+        contenido: document.getElementById('docContent').value,
+        url: document.getElementById('docUrl').value
+    };
+    
+    try {
+        const response = await fetch('/admin/knowledge', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(formData)
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            alert('Documento guardado exitosamente');
+            closeModal();
+            location.reload(); // Recargar para mostrar el nuevo documento
+        } else {
+            alert('Error al guardar documento: ' + data.message);
+        }
+    } catch (error) {
+        alert('Error de conexión');
+        console.error('Error:', error);
+    }
+});
+
+// Cerrar modal al hacer click fuera
+document.getElementById('documentModal').addEventListener('click', function(e) {
+    if (e.target === this) {
+        closeModal();
+    }
+});
+</script>
+{% endblock %}
