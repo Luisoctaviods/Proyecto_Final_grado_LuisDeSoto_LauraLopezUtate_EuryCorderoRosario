@@ -9,7 +9,7 @@ Un chatbot inteligente desarrollado con Flask y OpenAI que utiliza una base de c
 - 📚 **Base de conocimiento** personalizable
 - 📱 **Diseño responsive** (PC y móvil)
 - 🗄️ **Almacenamiento en MongoDB**
-- 🎨 **Interfaz moderna** que replica los mockups
+- 🎨 **Interfaz moderna** 
 
 ## 🏗️ Estructura del Proyecto
 
