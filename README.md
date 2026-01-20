@@ -212,7 +212,7 @@ pip install --upgrade -r requirements.txt
 - ✅ Responsive para móvil
 
 ### Colores y Estilo
-- 🎨 Fondo oscuro (#1a1a1a)
+- 🎨 Fondo claro
 - 🔴 Acentos rojos (#ff3333)
 - 📱 Totalmente responsive
 - ✨ Animaciones suaves
