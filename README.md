@@ -1,17 +1,17 @@
-# 🤖 inchat - Chatbot Universitario
+# inchat - Chatbot Universitario
 
 Un chatbot inteligente desarrollado con Flask y OpenAI que utiliza una base de conocimiento personalizable para responder preguntas sobre una universidad.
 
-## ✨ Características
+##  Características
 
-- 🔐 **Sistema de autenticación** completo (registro y login)
-- 💬 **Chat en tiempo real** con IA
-- 📚 **Base de conocimiento** personalizable
-- 📱 **Diseño responsive** (PC y móvil)
-- 🗄️ **Almacenamiento en MongoDB**
-- 🎨 **Interfaz moderna** 
+-  **Sistema de autenticación** completo (registro y login)
+- **Chat en tiempo real** con IA
+-  **Base de conocimiento** personalizable
+-  **Diseño responsive** (PC y móvil)
+- **Almacenamiento en MongoDB**
+-  **Interfaz moderna** 
 
-## 🏗️ Estructura del Proyecto
+##  Estructura del Proyecto
 
 ```
 inchat/
@@ -27,7 +27,7 @@ inchat/
     └── admin_knowledge.html # Administración de base de conocimiento
 ```
 
-## 🚀 Instalación Rápida
+##  Instalación Rápida
 
 ### Prerrequisitos
 
@@ -56,26 +56,25 @@ inchat/
 
 ### Instalación Manual
 
-Si prefieres configurar manualmente:
 
-1. **Instala las dependencias**:
+1. **Instalar las dependencias**:
    ```bash
    pip install -r requirements.txt
    ```
 
-2. **Configura las variables de entorno**:
+2. **Configurar las variables de entorno**:
    ```bash
    cp .env.example .env
    # Edita .env con tus configuraciones
    ```
 
-3. **Configura MongoDB** creando las colecciones:
+3. **Configurar MongoDB** creando las colecciones:
    - `users`
    - `chat_sessions` 
    - `messages`
    - `knowledge_base`
 
-## 🗄️ Estructura de Base de Datos
+##  Estructura de Base de Datos
 
 ### Colección `users`
 ```javascript
@@ -124,7 +123,7 @@ Si prefieres configurar manualmente:
 }
 ```
 
-## 🎯 Uso
+## Uso
 
 ### Para Usuarios
 
@@ -141,14 +140,14 @@ Si prefieres configurar manualmente:
    - **Documentos**: Texto con información
    - **Enlaces**: URLs con descripción
 
-## 🎨 Diseño Responsive
+## Diseño Responsive
 
 La aplicación se adapta automáticamente a diferentes tamaños de pantalla:
 
 - **Desktop**: Sidebar visible, layout completo
 - **Mobile**: Sidebar colapsable, interfaz optimizada para touch
 
-## 🔧 Configuración Avanzada
+## Configuración Avanzada
 
 ### Personalizar el Prompt del Sistema
 
@@ -176,7 +175,7 @@ def manage_knowledge():
     # ... resto del código
 ```
 
-## 🚨 Solución de Problemas
+## Solución de Problemas
 
 ### Error de conexión a MongoDB
 ```bash
@@ -196,28 +195,28 @@ brew services list | grep mongodb  # macOS
 pip install --upgrade -r requirements.txt
 ```
 
-## 📱 Características del Diseño
+## Características del Diseño
 
 ### Pantalla de Login/Registro
-- ✅ Tabs intercambiables
-- ✅ Validación en tiempo real
-- ✅ Mensajes de error/éxito
-- ✅ Diseño idéntico a los mockups
+- Tabs intercambiables
+- Validación en tiempo real
+   Mensajes de error/éxito
+- Diseño idéntico a los mockups
 
 ### Pantalla de Chat
-- ✅ Sidebar con historial de conversaciones
-- ✅ Mensajes con avatares y timestamps
-- ✅ Input con auto-resize
-- ✅ Indicadores de carga
-- ✅ Responsive para móvil
+- Sidebar con historial de conversaciones
+- Mensajes con avatares y timestamps
+- Input con auto-resize
+- Indicadores de carga
+- Responsive para móvil
 
 ### Colores y Estilo
-- 🎨 Fondo claro
-- 🔴 Acentos rojos (#ff3333)
-- 📱 Totalmente responsive
-- ✨ Animaciones suaves
+- Fondo claro
+- Acentos rojos (#ff3333)
+- Totalmente responsive
+- Animaciones suaves
 
-## 🤝 Contribuir
+## Contribuir
 
 1. Fork el proyecto
 2. Crea una rama para tu feature
@@ -225,11 +224,7 @@ pip install --upgrade -r requirements.txt
 4. Push a la rama
 5. Abre un Pull Request
 
-## 📄 Licencia
-
-Este proyecto está bajo la Licencia MIT. Consulta el archivo `LICENSE` para más detalles.
-
-## 🆘 Soporte
+## Soporte
 
 Si tienes problemas o preguntas:
 
@@ -238,7 +233,7 @@ Si tienes problemas o preguntas:
 3. Asegúrate de que MongoDB esté ejecutándose
 4. Comprueba que tu API key de OpenAI sea válida
 
-## 🔜 Próximas Características
+## Próximas Características
 
 - [ ] Sistema de roles (admin/usuario)
 - [ ] Carga de archivos PDF para la base de conocimiento
@@ -246,7 +241,5 @@ Si tienes problemas o preguntas:
 - [ ] Métricas y analíticas
 - [ ] Integración con más modelos de IA
 - [ ] API REST para integraciones externas
-
 ---
 
-¡Disfruta usando inchat! 🎉
